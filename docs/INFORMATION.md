@@ -41,7 +41,7 @@ running.
 
 ## Architecture Diagram
 
-<img width="2187" height="1468" alt="URL Blocker Plugin (1)" src="https://github.com/user-attachments/assets/d0a54855-d639-4669-8cff-3962fd028ffb" />
+<img width="2187" height="1268" alt="URL Blocker Plugin (1)" src="https://github.com/user-attachments/assets/d0a54855-d639-4669-8cff-3962fd028ffb" />
 
 
 ------------------------------------------------------------------------
