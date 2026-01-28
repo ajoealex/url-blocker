@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Tab URL Blocker 404 – Architecture and Security Documentation</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+.section { page-break-inside: avoid; }
+.code { background:#0f172a; color:#e5e7eb; }
+.table th { background:#f1f5f9; }
+pre { white-space: pre-wrap; }
+</style>
+</head>
+
+<body class="bg-white text-slate-800 font-sans leading-relaxed">
+
+<div class="w-full mx-auto px-5 py-12 space-y-14">
+
+<section class="section text-center border-b pb-8">
+<h1 class="text-4xl font-bold">Tab URL Blocker 404</h1>
+<p class="mt-2 text-lg text-slate-600">Architecture and Security Documentation</p>
+<div class="mt-6 text-sm space-y-1 text-left">
+<p><strong>Source Code Repository:</strong> <a class="text-blue-700 underline" href="https://github.com/ajoealex/url-blocker">https://github.com/ajoealex/url-blocker</a></p>
+<p><strong>Chrome Extension Download:</strong> <a class="text-blue-700 underline" href="https://chromewebstore.google.com/detail/tab-url-blocker-404/kokjfejdghjdinfjhhpbihljmcfpjaci">https://chromewebstore.google.com/detail/tab-url-blocker-404/kokjfejdghjdinfjhhpbihljmcfpjaci</a></p>
+<p><strong>URL Blocker Listener (Binary Download):</strong> <a class="text-blue-700 underline" href="https://github.com/ajoealex/url-blocker/releases">https://github.com/ajoealex/url-blocker/releases</a></p>
+</div>
+</section>
+
+<section class="section">
+<h2 class="text-2xl font-semibold border-b pb-2 mb-4">Solution Overview</h2>
+<p>Tab URL Blocker 404 is a Chrome Manifest V3 extension that enforces website blocking using Chrome’s declarativeNetRequest engine. It supports optional audit and reporting through a local or centrally hosted listener service.</p>
+<p class="mt-3">The solution consists of two components:</p>
+<div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+  <div class="border rounded-lg p-4 bg-slate-50">
+    <div class="flex items-center justify-between">
+      <strong class="text-lg">Chrome Extension</strong>
+      <a class="text-blue-700 underline text-sm" href="https://chromewebstore.google.com/detail/tab-url-blocker-404/kokjfejdghjdinfjhhpbihljmcfpjaci">Download</a>
+    </div>
+    <p class="mt-2">Whitelisted and managed within the organization. Responsible for URL blocking and optional reporting.</p>
+    <a class="mt-2 inline-block text-blue-700 underline text-sm" href="#extension-capabilities">more</a>
+  </div>
+  <div class="border rounded-lg p-4 bg-slate-50">
+    <div class="flex items-center justify-between">
+      <strong class="text-lg">URL Blocker Listener</strong>
+      <a class="text-blue-700 underline text-sm" href="https://github.com/ajoealex/url-blocker/releases">Download</a>
+    </div>
+    <p class="mt-2">A standalone service distributed as a platform executable that receives tab block events over HTTP and stores them in memory.</p>
+    <a class="mt-2 inline-block text-blue-700 underline text-sm" href="#listener-security-model">more</a>
+  </div>
+</div>
+<p class="mt-3">For ACCELQ automation use cases, it is recommended to start the listener service on the same machine where the ACCELQ agent is installed and running.</p>
+</section>
+
+<section class="section">
+<h2 class="text-2xl font-semibold border-b pb-2 mb-4">Architecture Diagram</h2>
+<div class="border rounded-lg p-4 bg-slate-50">
+<img src="arch.png" alt="Tab URL Blocker 404 architecture diagram" class="w-full h-auto rounded-md">
+</div>
+</section>
+
+<section class="section">
+<h2 id="extension-capabilities" class="text-2xl font-semibold border-b pb-2 mb-4">Tab URL Blocker 404 Plugin Capabilities</h2>
+<h3 class="font-semibold mt-3">Core Functionality</h3>
+<ul class="list-disc pl-6 mt-2 space-y-1">
+<li>Blocks navigation requests that match user-defined URL patterns</li>
+<li>Uses Manifest V3 and Chrome’s declarative rules engine</li>
+<li>No request interception proxies</li>
+<li>No content-level traffic inspection</li>
+<li>Blocking is enforced natively by Chrome</li>
+</ul>
+
+<h3 class="font-semibold mt-4">Optional Capabilities</h3>
+<p class="mt-2"><strong>Reporting (Optional)</strong><br/>Sends blocked URL events to a user-configured URL Blocker Listener endpoint over HTTP POST. Reporting is enabled only when the listener service is running, configured, and reachable.</p>
+<p class="mt-2"><strong>Auto-close Tabs (Optional)</strong><br/>Automatically closes tabs after a configurable delay when a blocked URL is accessed.</p>
+</section>
+
+<section class="section">
+<h2 class="text-2xl font-semibold border-b pb-2 mb-4">Data Flow Model</h2>
+
+<h3 class="font-semibold mt-3">Blocking Flow (Local-Only)</h3>
+<ul class="list-disc pl-6 mt-2 space-y-1">
+<li>User configures URL patterns in the extension for tab blocking</li>
+<li>Extension updates declarativeNetRequest rules</li>
+<li>Chrome blocks matching requests locally within the browser</li>
+</ul>
+<p class="mt-2"><strong>Result:</strong> All blocking is performed inside the browser. No network traffic is generated.</p>
+
+<h3 class="font-semibold mt-4">Reporting Flow (Opt-In)</h3>
+<ul class="list-disc pl-6 mt-2 space-y-1">
+<li>Extension validates listener availability via /ping</li>
+<li>If enabled:</li>
+<ul class="list-disc pl-10 mt-1 space-y-1">
+<li>Block events are sent to the listener via HTTP POST</li>
+<li>Listener stores events in memory for retrieval</li>
+</ul>
+</ul>
+<p class="mt-2"><strong>Security boundary:</strong> Reporting introduces a network path. If reporting is disabled, no block data leaves the browser.</p>
+</section>
+
+<section class="section">
+<h2 class="text-2xl font-semibold border-b pb-2 mb-4">Permissions and Security Posture</h2>
+<div class="max-w-4xl mx-0">
+<table class="table w-full border mt-4 text-sm">
+<tr><th class="border p-2">Permission</th><th class="border p-2">Purpose</th></tr>
+<tr><td class="border p-2">storage</td><td class="border p-2">Store patterns and configuration</td></tr>
+<tr><td class="border p-2">declarativeNetRequest</td><td class="border p-2">Apply blocking rules</td></tr>
+<tr><td class="border p-2">declarativeNetRequestFeedback</td><td class="border p-2">Detect blocked requests</td></tr>
+<tr><td class="border p-2">tabs</td><td class="border p-2">Enable tab auto-close functionality</td></tr>
+<tr><td class="border p-2">&lt;all_urls&gt;</td><td class="border p-2">Apply rules across all sites</td></tr>
+</table>
+</div>
+<p class="mt-3"><strong>Security rationale:</strong> These permissions are broad by necessity for network-level blocking. Risk is mitigated architecturally by using MV3 declarative rules, not runtime interception, content injection, or script-based scraping.</p>
+</section>
+
+<section class="section">
+<h2 id="listener-security-model" class="text-2xl font-semibold border-b pb-2 mb-4">URL Blocker Listener</h2>
+
+<h3 class="font-semibold mt-3">What the Listener Is</h3>
+<p>The listener is distributed as a prebuilt standalone executable for Windows, Linux, and macOS. It does not require Node.js installation on endpoints.</p>
+<p class="mt-2"><strong>Download:</strong> <a class="text-blue-700 underline" href="https://github.com/ajoealex/url-blocker/releases">https://github.com/ajoealex/url-blocker/releases</a></p>
+
+<h3 class="font-semibold mt-3">Functional Behavior</h3>
+<ul class="list-disc pl-6 mt-2 space-y-1">
+<li>Starts an HTTP service on a configurable port</li>
+<li>Receives blocked URL events from the extension</li>
+<li>Stores events in a FIFO in-memory queue</li>
+<li>Exposes endpoints for health checks and event queries</li>
+</ul>
+
+<h3 class="font-semibold mt-3">Configuration Model</h3>
+<ul class="list-disc pl-6 mt-2 space-y-1">
+<li>app.properties must be placed alongside the executable</li>
+<li>Configuration is file-based and local to the deployment</li>
+</ul>
+
+<h3 class="font-semibold mt-3">Enterprise Security Controls (Recommended)</h3>
+<ul class="list-disc pl-6 mt-2 space-y-1">
+<li>Bind service to 127.0.0.1 by default</li>
+<li>For central reporting:</li>
+<ul class="list-disc pl-10 mt-1 space-y-1">
+<li>Terminate TLS via reverse proxy</li>
+<li>Restrict inbound traffic by corporate IP allowlists</li>
+</ul>
+<li>Enforce authentication (mTLS or token-based auth) for non-local traffic</li>
+<li>Keep memory-only storage unless persistence is explicitly required</li>
+</ul>
+</section>
+
+<section class="section">
+<h2 class="text-2xl font-semibold border-b pb-2 mb-4">Chrome Enterprise Management</h2>
+<p><strong>Extension Allowlisting</strong><br/>Admins can allowlist the extension via Google Admin Console.</p>
+<p class="mt-1"><strong>Extension ID:</strong> kokjfejdghjdinfjhhpbihljmcfpjaci</p>
+<p class="mt-3"><strong>Policy Management Best Practice</strong></p>
+<ul class="list-disc pl-6 mt-2 space-y-1">
+<li>Installation mode</li>
+<li>Policy enforcement</li>
+<li>Permission governance</li>
+</ul>
+</section>
+
+<section class="section">
+<h2 class="text-2xl font-semibold border-b pb-2 mb-4">Network and Privacy Disclosure</h2>
+
+<h3 class="font-semibold mt-3">Network Behavior</h3>
+<ul class="list-disc pl-6 mt-2 space-y-1">
+<li>Default: No outbound network calls</li>
+<li>Optional: When reporting is enabled:</li>
+<ul class="list-disc pl-10 mt-1 space-y-1">
+<li>HTTP POST to listener endpoint</li>
+<li>/ping used for health validation</li>
+</ul>
+</ul>
+
+<h3 class="font-semibold mt-3">Data Captured (Reporting Only)</h3>
+<ul class="list-disc pl-6 mt-2 space-y-1">
+<li>URL</li>
+<li>Timestamp</li>
+<li>Tab ID</li>
+<li>Request type</li>
+<li>Initiator</li>
+</ul>
+
+<h3 class="font-semibold mt-3">Data Retention</h3>
+<ul class="list-disc pl-6 mt-2 space-y-1">
+<li>In-memory only</li>
+<li>Non-persistent by default</li>
+<li>Persistence requires explicit implementation</li>
+</ul>
+</section>
+
+<section class="section">
+<h2 class="text-2xl font-semibold border-b pb-2 mb-4">Listener API Surface</h2>
+
+<h3 class="font-semibold mt-3">APIs Invoked by the Chrome Extension</h3>
+<p class="mt-2">These APIs are called only when reporting is enabled.</p>
+
+<div class="code rounded-lg p-4 text-sm overflow-x-auto mt-4"><pre>
+GET /ping
+Purpose: Connectivity and health validation before enabling reporting
+Invoked by: Chrome extension to listener service
+Usage: Server availability check
+
+Response:
+{
+  "status": "ok",
+  "message": "Server is running"
+}
+</pre></div>
+
+<div class="code rounded-lg p-4 text-sm overflow-x-auto mt-4"><pre>
+POST /
+Purpose: Report blocked URL event to the listener service
+Invoked by: Chrome extension
+
+Request Body:
+{
+  "blockedUrl": {
+    "url": "https://example.com",
+    "timestamp": "2026-01-01T10:00:00.000Z",
+    "tabId": 123,
+    "type": "main_frame",
+    "initiator": "https://google.com"
+  },
+  "reportedAt": "2026-01-01T10:00:00.000Z"
+}
+
+Response:
+{
+  "message": "Blocked URL recorded successfully",
+  "totalRequests": 5
+}
+</pre></div>
+
+<h3 class="font-semibold mt-6">APIs Exposed by the Listener Service</h3>
+<p class="mt-2">These APIs are not used by the plugin and are intended for administrators, monitoring tools, or integrations.</p>
+
+<div class="code rounded-lg p-4 text-sm overflow-x-auto mt-4"><pre>
+GET /
+Purpose: Retrieve all stored tab block events
+
+Response:
+{
+  "requests": [
+    {
+      "url": "https://example.com",
+      "timestamp": "2025-12-28T02:44:45.437Z",
+      "tabId": 1772131031,
+      "type": "sub_frame",
+      "initiator": "https://www.youtube.com",
+      "reportedAt": "2025-12-28T02:44:45.437Z"
+    }
+  ],
+  "totalRequests": 1
+}
+</pre></div>
+
+<div class="code rounded-lg p-4 text-sm overflow-x-auto mt-4"><pre>
+GET /?latest=true
+Purpose: Retrieve the most recent tab block event
+
+Response:
+{
+  "latest": {
+    "url": "https://example.com",
+    "timestamp": "2025-12-28T02:44:45.437Z",
+    "tabId": 1772131031,
+    "type": "sub_frame",
+    "initiator": "https://www.youtube.com",
+    "reportedAt": "2025-12-28T02:44:45.437Z"
+  },
+  "totalRequests": 1
+}
+</pre></div>
+
+<div class="code rounded-lg p-4 text-sm overflow-x-auto mt-4"><pre>
+DELETE /cleanup
+Purpose: Clear in-memory event store
+
+Response:
+{
+  "message": "All blocked URL requests cleared",
+  "clearedCount": 10
+}
+</pre></div>
+
+<div class="code rounded-lg p-4 text-sm overflow-x-auto mt-4"><pre>
+GET /ping
+Purpose: Health check endpoint
+Consumers: Tab URL Blocker 404 plugin
+
+Response:
+{
+  "status": "ok",
+  "message": "Server is running"
+}
+</pre></div>
+
+</section>
+
+</div>
+</body>
+</html>
