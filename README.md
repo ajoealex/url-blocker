@@ -747,27 +747,3 @@ Potential improvements for future versions:
 
 ISC
 
-## Support
-
-For issues, questions, or contributions:
-1. Review this documentation thoroughly
-2. Check the [Troubleshooting](#troubleshooting) section
-3. Review console logs for error messages
-4. Check that all configuration is correct
-
-## Acknowledgments
-
-Built with:
-- Chrome Extension Manifest V3
-- Express.js
-- Node.js
-- Properties Reader
-
-## Version History
-
-- **v1.0.0** - Initial release
-  - URL pattern blocking
-  - Reporting server
-  - Auto-close tabs feature
-  - Server health checks
-  - Standalone executables
