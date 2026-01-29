@@ -728,21 +728,6 @@ This information is sent to the configured endpoint. Only enable reporting if yo
 5. **Network dependent**: Reporting requires network connectivity to server
 6. **Tab closing**: Cannot close certain special tabs (chrome://, edge://, etc.)
 
-## Future Enhancements
-
-Potential improvements for future versions:
-
-- Persistent storage option for server (database support)
-- Authentication for server API
-- Scheduled pattern rules (time-based blocking)
-- Allow/block lists (exceptions to patterns)
-- Statistics and analytics dashboard
-- Export/import pattern configurations
-- Browser action badge showing blocked count
-- Notification system for blocked attempts
-- Mobile browser support (where possible)
-- Pattern testing/validation tool
-
 ## License
 
 ISC
